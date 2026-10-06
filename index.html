@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f7fb">
+<title>わが家の予定表</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#202331;--muted:#6f7485;--line:#e4e7ef;--primary:#6658e8;--primary2:#887df2;--green:#16866f;--danger:#c34655;--shadow:0 10px 30px rgba(35,39,70,.08);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f8f5ff 0,#f4f8fb 45%,#f8fbf5 100%);color:var(--ink);min-height:100vh}
+button,input{font:inherit}button{cursor:pointer}.wrap{width:min(1050px,calc(100% - 28px));margin:auto;padding:28px 0 70px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:4px 0 22px}.eyebrow{color:var(--primary);font-weight:800;font-size:.78rem;letter-spacing:.12em}.title{font-size:clamp(1.75rem,5vw,2.6rem);margin:.2rem 0;letter-spacing:.02em}.sub{margin:0;color:var(--muted);font-size:.94rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 13px;border-radius:12px;font-weight:700;box-shadow:0 2px 8px rgba(30,35,65,.04)}.btn:hover{border-color:#bbb7ed}.btn.primary{color:#fff;border:0;background:linear-gradient(135deg,var(--primary),var(--primary2))}.btn.danger{color:var(--danger)}
+.grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:18px}.card{background:rgba(255,255,255,.94);border:1px solid rgba(224,225,236,.85);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+.card h2{font-size:1.2rem;margin:0}.cardhead{display:flex;align-items:center;gap:11px;margin-bottom:16px}.icon{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:#eeeaff;font-size:1.25rem}.meal-icon{background:#e8f7f1}.hint{color:var(--muted);font-size:.82rem;margin:5px 0 0}
+.entry{position:relative;display:flex;gap:8px}.entry input{width:100%;min-width:0;border:1px solid var(--line);background:#fbfbfe;border-radius:13px;padding:12px 13px;outline:none}.entry input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,88,232,.12);background:#fff}.add{flex:0 0 auto;border:0;border-radius:12px;padding:0 16px;background:var(--ink);color:#fff;font-weight:800}
+.suggest{position:absolute;z-index:10;top:calc(100% + 6px);left:0;right:62px;max-height:220px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 15px 35px rgba(28,31,55,.16);padding:5px;display:none}.suggest.show{display:block}.suggest button{width:100%;border:0;background:transparent;padding:10px;text-align:left;border-radius:9px}.suggest button:hover,.suggest button.active{background:#f0eeff;color:#4e42cf}.none{padding:10px;color:var(--muted);font-size:.86rem}
+.items{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-wrap:wrap;gap:8px;min-height:31px}.chip{display:flex;align-items:center;gap:7px;background:#f1efff;border:1px solid #e4e0ff;border-radius:999px;padding:7px 8px 7px 12px;font-size:.9rem}.chip label{display:flex;align-items:center;gap:7px;cursor:pointer}.chip input{width:18px;height:18px;accent-color:var(--green);cursor:pointer}.chip.done span{text-decoration:line-through;color:#8b8f9c}.chip.done{opacity:.72}.chip button{border:0;background:rgba(255,255,255,.7);border-radius:50%;width:23px;height:23px;color:#6f6b84;line-height:1}.chip button:hover{background:#fff;color:var(--danger)}.empty{color:var(--muted);font-size:.86rem;padding:5px 0}
+.days{display:grid;gap:11px}.day{background:#fafbfe;border:1px solid var(--line);border-radius:16px;padding:13px}.daytop{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.dayname{font-weight:900}.count{color:var(--muted);font-size:.75rem}.day .items{margin-top:10px}.day .chip{background:#eaf7f3;border-color:#d5eee6}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:18px}.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#202331;color:#fff;padding:11px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.2s;z-index:30}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:760px){.wrap{width:min(100% - 18px,650px);padding-top:18px}.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions .btn{flex:1}.card{padding:16px;border-radius:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div><div class="eyebrow">FAMILY WEEKLY BOARD</div><h1 class="title">わが家の予定表</h1><p class="sub" id="weekText"></p></div><div class="actions"><button class="btn" id="exportBtn">データ保存</button><button class="btn" id="importBtn">読み込み</button><button class="btn danger" id="clearBtn">全消去</button><input id="fileInput" type="file" accept="application/json" hidden></div></header>
+<main class="grid">
+<section class="card"><div class="cardhead"><div class="icon">🛒</div><div><h2>今週の買い物</h2><p class="hint">文字を入力して候補を選択、または自由入力できます</p></div></div><div id="shoppingEntry"></div><ul id="shoppingItems" class="items"></ul></section>
+<section class="card"><div class="cardhead"><div class="icon meal-icon">🍽️</div><div><h2>月〜金の夕飯</h2><p class="hint">料理は各曜日に何個でも追加できます</p></div></div><div id="days" class="days"></div></section>
+</main><footer>入力内容はこのブラウザー内に自動保存されます</footer>
+</div><div class="toast" id="toast"></div>
+<script>
+'use strict';
+const SHOP_DEFAULT=['トイレットペーパー','トイレ消臭剤','ティッシュペーパー','キッチンペーパー','洗濯洗剤','食器用洗剤','柔軟剤','シャンプー','牛乳','卵','食パン','米','水','お茶','コーヒー','ヨーグルト','バナナ','りんご','玉ねぎ','にんじん','じゃがいも','キャベツ','レタス','トマト','鶏肉','豚肉','ひき肉','鮭','豆腐','納豆','冷凍食品'];
+const MEAL_DEFAULT=['鶏のから揚げ','照り焼きチキン','親子丼','カレーライス','ハンバーグ','豚の生姜焼き','肉じゃが','麻婆豆腐','焼き魚','鮭のホイル焼き','冷凍餃子','焼き餃子','チャーハン','オムライス','焼きそば','うどん','そば','ラーメン','パスタ','鍋','シチュー','グラタン','サラダ','味噌汁','スープ','コロッケ','とんかつ'];
+const DAYS=[['mon','月曜日'],['tue','火曜日'],['wed','水曜日'],['thu','木曜日'],['fri','金曜日']];
+const KEY='family-weekly-board-v1';
+let state=load();
+function blank(){return {shopping:[],meals:{mon:[],tue:[],wed:[],thu:[],fri:[]},customShop:[],customMeal:[]}}
+function asItems(a){return Array.isArray(a)?a.map(x=>typeof x==='string'?{text:x,done:false}:{text:String(x.text??''),done:Boolean(x.done)}).filter(x=>x.text):[]}
+function normalize(v){const b=blank();b.shopping=asItems(v?.shopping);for(const [id] of DAYS)b.meals[id]=asItems(v?.meals?.[id]);b.customShop=Array.isArray(v?.customShop)?v.customShop:[];b.customMeal=Array.isArray(v?.customMeal)?v.customMeal:[];return b}
+let storageOK=true;
+function load(){try{const raw=window.localStorage.getItem(KEY);return raw?normalize(JSON.parse(raw)):blank()}catch(e){storageOK=false;return blank()}}
+function save(){try{window.localStorage.setItem(KEY,JSON.stringify(state));storageOK=true}catch(e){storageOK=false}}
+function norm(s){return s.trim().toLocaleLowerCase('ja')}
+function filtered(source,q){q=norm(q);if(!q)return source.slice(0,10);return source.filter(x=>norm(x).includes(q)).slice(0,12)}
+function entry(target,type){const box=document.createElement('div');box.className='entry';box.innerHTML='<input autocomplete="off" placeholder="例：ト、鶏、れ…"><div class="suggest"></div><button class="add" type="button">追加</button>';const input=box.querySelector('input'),suggest=box.querySelector('.suggest');
+ const source=()=>[...new Set(type==='shop'?[...state.customShop,...SHOP_DEFAULT]:[...state.customMeal,...MEAL_DEFAULT])];
+ function show(){const list=filtered(source(),input.value);suggest.innerHTML=list.length?list.map((x,i)=>`<button type="button" data-v="${esc(x)}" class="${i===0?'active':''}">${esc(x)}</button>`).join(''):'<div class="none">候補なし。そのまま「追加」で登録できます</div>';suggest.classList.add('show')}
+ function add(v=input.value){v=v.trim();if(!v)return;if(target.some(x=>x.text===v)){toast('すでに追加されています');return}target.push({text:v,done:false});const custom=type==='shop'?state.customShop:state.customMeal;if(!source().includes(v))custom.unshift(v);input.value='';suggest.classList.remove('show');save();render()}
+ input.addEventListener('input',show);input.addEventListener('focus',show);input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const a=suggest.querySelector('.active');add(a?.dataset.v||input.value)}else if(e.key==='Escape')suggest.classList.remove('show')});suggest.addEventListener('mousedown',e=>{const b=e.target.closest('button');if(b)add(b.dataset.v)});box.querySelector('.add').addEventListener('click',()=>add());document.addEventListener('click',e=>{if(!box.contains(e.target))suggest.classList.remove('show')});return box}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function chips(el,arr){el.innerHTML=arr.length?arr.map((x,i)=>`<li class="chip ${x.done?'done':''}"><label><input type="checkbox" data-check="${i}" ${x.done?'checked':''}><span>${esc(x.text)}</span></label><button type="button" data-delete="${i}" aria-label="${esc(x.text)}を削除">×</button></li>`).join(''):'<li class="empty">まだ登録されていません</li>';
+el.onchange=e=>{if(e.target.matches('[data-check]')){const i=Number(e.target.dataset.check);arr[i].done=e.target.checked;save();render()}};
+el.onclick=e=>{const b=e.target.closest('[data-delete]');if(!b)return;arr.splice(Number(b.dataset.delete),1);save();render()}}
+function render(){const se=document.getElementById('shoppingEntry');se.innerHTML='';se.append(entry(state.shopping,'shop'));chips(document.getElementById('shoppingItems'),state.shopping);const days=document.getElementById('days');days.innerHTML='';DAYS.forEach(([id,name])=>{const d=document.createElement('section');d.className='day';d.innerHTML=`<div class="daytop"><span class="dayname">${name}</span><span class="count">${state.meals[id].filter(x=>!x.done).length}件 未完了</span></div><div class="slot"></div><ul class="items"></ul>`;d.querySelector('.slot').append(entry(state.meals[id],'meal'));chips(d.querySelector('.items'),state.meals[id]);days.append(d)})}
+function weekLabel(){const now=new Date(),day=now.getDay()||7,mon=new Date(now);mon.setDate(now.getDate()-day+1);const fri=new Date(mon);fri.setDate(mon.getDate()+4);const f=d=>`${d.getMonth()+1}月${d.getDate()}日`;document.getElementById('weekText').textContent=`${f(mon)} 〜 ${f(fri)} の予定`}
+let timer;function toast(s){const t=document.getElementById('toast');t.textContent=s;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),1800)}
+document.getElementById('clearBtn').onclick=()=>{if(confirm('買い物と夕飯の入力をすべて消去しますか？')){state=blank();save();render();toast('すべて消去しました')}};
+document.getElementById('exportBtn').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='family-schedule.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+document.getElementById('importBtn').onclick=()=>document.getElementById('fileInput').click();document.getElementById('fileInput').onchange=async e=>{try{const v=JSON.parse(await e.target.files[0].text());state=normalize(v);save();render();toast('読み込みました')}catch{alert('正しい保存データを選択してください')}e.target.value=''};
+weekLabel();render();if(!storageOK)toast('プレビュー環境では自動保存が使えません');
+</script>
+</body></html>
